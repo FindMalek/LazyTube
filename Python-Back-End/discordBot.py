@@ -117,13 +117,10 @@ def message_beautifier(video_informations, videoThumbnail, ChannelLink):
     embed.set_image(url=videoThumbnail)
     embed.set_author(name=ChannelName, icon_url="https://images.pexels.com/photos/5020995/pexels-photo-5020995.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500")
     embed.add_field(name=VideoLink, value="*" + str(duration) +"*")
-# def SendMessage_Discord(list, client):
-#     #do the emoji react to do actions
-#         #do the embed
     return embed      
 
 
-#still have to update it
+#main function of discord bot
 def DiscordBot():
     client = commands.Bot(case_insensitive=True, command_prefix='/')
     

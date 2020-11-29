@@ -1,15 +1,15 @@
 import multiprocessing 
 from main_functions import MainFile
-from discordBot import sendMessage
+from discordBot import DiscordBot as Bot_Discord
 
 def main():
     mainProgram = multiprocessing.Process(target=MainFile)
-    sendingDiscordMessage = multiprocessing.Process(target=sendMessage)
+    DiscordBot = multiprocessing.Process(target=Bot_Discord)
         
-    sendingDiscordMessage.start()
+    DiscordBot.start()
     mainProgram.start()
 
-    sendingDiscordMessage.join()
+    DiscordBot.join()
     mainProgram.join()
 
 
