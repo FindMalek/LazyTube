@@ -286,7 +286,6 @@ def Add_Uploaded_Contenent(videos_dict):
 #add logs just for setup
 
 def MainFile():
-    x=0
     Google_API_Key = GoogleAPI_Key() #Get API key from the data base
     Youtube = GoogleClientRequest(Google_API_Key) #Send a request to use the API key in YOUTUBE DATA V3
     
@@ -296,7 +295,7 @@ def MainFile():
     updating_preferences("Number of loops") #update the data base 
     
     videos_dict = {}
-    while(x != 1):
+    while(True):
         PreFile = ReadJSON(Preferences_Path) #get database
         for channel in PreFile["Channels"]: #get through every channel to check for videos
             
@@ -312,7 +311,6 @@ def MainFile():
                 updating_preferences("Latest check", BeforePublish, channel) #update the channel latest check
                 videos_dict = VideosAppender(response, Youtube, videos_dict, getChannelId(channel, PreFile)) # add video list of that channel to the list/dict
                 QuotaCalculator(2)
-        x = 1
                 
         Add_Uploaded_Contenent(videos_dict) #put the list/dict in the uploaded videos
 
