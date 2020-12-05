@@ -6,22 +6,47 @@ from datetime import date, datetime, timedelta
 
 import googleapiclient.discovery
 
+
+
+
+#read any json file
+def ReadJSON(path):
+    with open(path, 'r') as file:
+        return json.load(file)
+
+#Needed for the path function
+def TranslatePaths(path):
+    operator = "\\"
+    if(operator in path):
+        folderName = path[:path.find("\\")]
+        fileName = path[path.find("\\") + 1:]
+        return "/" + folderName + "/" +  fileName
+    else:
+        fileName = path[path.find("\\") + 1:]
+        return  "/" + fileName
+     
 #get paths 
-def Path(relativeFolder="/", relativePath="", systeme=""):
-    Prefile = ReadJSON(Preferences_Path)
+def Path(relativePath=""):
+    try: 
+        Prefile = ReadJSON("Storings\preferences.json")
+    except Exception:
+        pass
+    else:
+        Prefile = ReadJSON("Storings/preferences.json")
+        
     systeme = Prefile["Preferences"]["System"]
     
-    if(systeme == 'LINUX'):
-        pathfile = relativeFolder . + relativePath
-        return str(os.getcwd()) + "/" + pathfile
+    if(systeme == 'LIN'):
+        return str(os.getcwd()) + "/" + TranslatePaths(relativePath)
     elif(systeme == 'WIN'):
         return str(os.getcwd()) + "\\" + relativePath
-
+    
+    
 #NEEDED PATHS
-Logs_Path = Path("Storings\\logs.txt", 'WIN')
-UploadedVideos_Path = Path("Storings\\UploadedVideos.json", 'WIN')
-Preferences_Path = Path("Storings\\preferences.json", 'WIN')
-DiscordBotPreferences_Path = Path("Storings\\DiscordBotPreferences.json", "WIN")
+Logs_Path = Path("Storings\\logs.txt")
+UploadedVideos_Path = Path("Storings\\UploadedVideos.json")
+Preferences_Path = Path("Storings\\preferences.json")
+DiscordBotPreferences_Path = Path("Storings\\DiscordBotPreferences.json")
 
 
 #get the API key from the preferences.json file      
@@ -31,11 +56,6 @@ def GoogleAPI_Key():
         PreferencesFile = json.load(PrefFile)
     Google_API_Key = PreferencesFile["Preferences"]["Google API Key"]
     return Google_API_Key
-
-#read any json file
-def ReadJSON(path):
-    with open(path, 'r') as file:
-        return json.load(file)
 
 #convert time to a more readable form for addLogs
 def Convert_Time(time_complexe):
@@ -53,8 +73,6 @@ def addLog(action):
         for line in fileLogs:
             fullFile.write(line)
 
-
-
 #Time format for the AddLog function  
 def Logs_Time():
     return '[ (' +  str(date.today()).replace('-', '/') + ')' + ' | ' + datetime.now().strftime("%A, %H:%M:%S")+']'
@@ -63,7 +81,6 @@ def Logs_Time():
 def delay(prob_time):
     #addLog("(type=Delay) - " + str(prob_time))
     time.sleep(prob_time)
-
 
 #Send the request for googleapiclient.discovery.build
 def GoogleClientRequest(apiKey):
@@ -221,6 +238,7 @@ def getChannelId(channel, PreFile):
 def QuotaCalculator(number):
     delay(1)
     PreFile = ReadJSON(Preferences_Path)
+    updating_preferences("Quotas, Requests rate", PreFile["Preferences"]["Quotas"]["Requests rate"] + number)
     time_now = datetime.now()
     ResetTime = datetime.strptime(PreFile["Preferences"]["Quotas"]["Reset time"], '%Y-%m-%d %H:%M:%S.%f')
     if(ResetTime >= (time_now - timedelta(hours=24))):
@@ -228,11 +246,10 @@ def QuotaCalculator(number):
             #addLog("Requests rate has been exceeded (Paused for 24 hours)")
             time.sleep(60*60*24)
             updating_preferences("Quotas, Requests rate", 0)
-    elif(ResetTime < (time_now - timedelta(hours=24))): 
+    if(ResetTime < (time_now - timedelta(hours=24))): 
+        updating_preferences("Quotas, Requests rate", 0)
         updating_preferences("Quotas, Reset time", time_now)
-    updating_preferences("Quotas, Requests rate", PreFile["Preferences"]["Quotas"]["Requests rate"] + number)
     
-    return PreFile["Preferences"]["Quotas"]["Requests rate"] + number
 
 
 #NEXT UPDATE
@@ -274,26 +291,14 @@ def VideosAppender(response, Youtube, video_dict={}, channelId="" ):
 #add the video_dict to .json file "UploadedVideos"
 def Add_Uploaded_Contenent(videos_dict):
     #addLog("(type=Update) - Updating UploadedVideos.json")
+    Uploadfile = ReadJSON(UploadedVideos_Path)
+    Uploadfile.update(videos_dict)
+        
     with open(UploadedVideos_Path, "w") as write_file:
-        json.dump(videos_dict, write_file, indent=4, sort_keys=True)
+        json.dump(Uploadfile, write_file, indent=4, sort_keys=True)
     #addLog("(type=Update) - Updated UploadedVideos.json")
 
-def systemRun():
-    system = ""
-    while(system not in ["1", "2"]):
-        print("______________________________\nWhich system are you running?\n\n1) Windows\n2) Ubuntu / Linux\n\nAnswer: ", end="")
-        system = str(input())
-        print("______________________________")
-        
-    if(system == "1"):
-        system = "WIN"
-    else:
-        system = "LIN"
-        
-    PreFile = ReadJSON(Preferences_Path)
-    PreFile["Preferences"]["System"] = system
-    updating_preferences("System", system)
-    
+
     
 
 #main filee"
@@ -308,17 +313,15 @@ def MainFile():
     updating_preferences("Time = Start", Basic_Time) #update the data base 
     updating_preferences("Number of loops") #update the data base 
     
-    videos_dict = {}
+    
     while(True):
         PreFile = ReadJSON(Preferences_Path) #get database
+        videos_dict = {}
         for channel in PreFile["Channels"]: #get through every channel to check for videos
             
-            # AfterPublish = upload_intervale(Basic_Time, channel)[0]
-            # BeforePublish = upload_intervale(Basic_Time, channel)[1]
+            AfterPublish = upload_intervale(Basic_Time, channel)[0]
+            BeforePublish = upload_intervale(Basic_Time, channel)[1]
             # AfterPublish = "2020-10-26T22:37:21.220816+01:00"
-            
-            AfterPublish = "2020-11-20T22:37:21.220816+01:00" #get period to check from AfterPublish
-            BeforePublish = str(Basic_Time).replace(" ", "T") #get period to check from BeforePublish
             
             if(ChannelAvailibility(channel, Basic_Time)): #check if the channel is ready to be checked
                 response = ChannelResponse_Activities(channel, Youtube, AfterPublish, BeforePublish) #response of the activities of the channel
@@ -327,8 +330,3 @@ def MainFile():
                 QuotaCalculator(2)
                 
         Add_Uploaded_Contenent(videos_dict) #put the list/dict in the uploaded videos
-
-
-
-
-MainFile()

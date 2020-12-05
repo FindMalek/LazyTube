@@ -142,13 +142,12 @@ def DiscordBot():
         UploadedVideos = dict(ReadJSON(UploadedVideos_Path))
         ChannelIds_list = ChannelIds(UploadedVideos, "Channels")
         VideosList = PrepareMessages(UploadedVideos, ChannelIds_list)
-        
-        
+
 
         for video_informations in VideosList:
-
             ChannelLink = "https://www.youtube.com/channel/" + video_informations["ChannelId"]
             videoThumbnail = video_informations["videoThumbnail"]
+            
             await channel.send(embed=message_beautifier(video_informations, videoThumbnail, ChannelLink))
             
     #set default sending channel   
@@ -159,21 +158,20 @@ def DiscordBot():
     #check if the bot is on 
     @client.command(aliases = ['on'])
     async def on_check(ctx):   
-        await ctx.send("I'm online and working!")
+        await ctx.send("---------------------------\nI'm online and working!\n---------------------------")
+        delay(1.25)
     
     #add a function to add channel and make sure they exist
     
     client.run(Preferences_Informations("Discord API Key"))
         
 #NEEDED PATHS
-Logs_Path = Path("Storings\\logs.txt", "WIN")
-UploadedVideos_Path = Path("Storings\\UploadedVideos.json", "WIN")
-Preferences_Path = Path("Storings\\preferences.json", "WIN")
-DiscordBotPreferences_Path = Path("Storings\\DiscordBotPreferences.json", "WIN")
+Logs_Path = Path("Storings\\logs.txt")
+UploadedVideos_Path = Path("Storings\\UploadedVideos.json")
+Preferences_Path = Path("Storings\\preferences.json")
+DiscordBotPreferences_Path = Path("Storings\\DiscordBotPreferences.json")
 
 #NEEDED Variables
 minutes_patter = re.compile(r"(\d+)M")
 hours_patter = re.compile(r"(\d+)H")
 seconds_pattern = re.compile(r"(\d+)S")
-
-DiscordBot()
