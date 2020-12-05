@@ -4,7 +4,7 @@ from discordBot import DiscordBot as Bot_Discord
 
 
 #To choose which platform to run on
-Preferences_Path = Path("Storings\\preferences.json")
+
 def systemRun():
     system = ""
     while(system not in ["1", "2"]):
@@ -17,8 +17,10 @@ def systemRun():
     else:
         system = "LIN"
         
+    Preferences_Path = Path("Storings\\preferences.json")
     PreFile = ReadJSON(Preferences_Path)
     PreFile["Preferences"]["System"] = system
+    
     updating_preferences("System", system)
 
 #main function
