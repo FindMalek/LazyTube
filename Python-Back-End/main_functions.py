@@ -4,13 +4,16 @@ import time, pytz
 from pytz import timezone
 from datetime import date, datetime, timedelta 
 
-
 import googleapiclient.discovery
 
 #get paths 
-def Path(relativePath, systeme):
+def Path(relativeFolder="/", relativePath="", systeme=""):
+    Prefile = ReadJSON(Preferences_Path)
+    systeme = Prefile["Preferences"]["System"]
+    
     if(systeme == 'LINUX'):
-        return str(os.getcwd()) + "/" + relativePath
+        pathfile = relativeFolder . + relativePath
+        return str(os.getcwd()) + "/" + pathfile
     elif(systeme == 'WIN'):
         return str(os.getcwd()) + "\\" + relativePath
 
@@ -20,16 +23,6 @@ UploadedVideos_Path = Path("Storings\\UploadedVideos.json", 'WIN')
 Preferences_Path = Path("Storings\\preferences.json", 'WIN')
 DiscordBotPreferences_Path = Path("Storings\\DiscordBotPreferences.json", "WIN")
 
-
-#delete this later we dont need it
-def pretty(d, indent=0):
-   for key, value in d.items():
-      print('\t' * indent + str(key))
-      if isinstance(value, dict):
-         pretty(value, indent+1)
-      else:
-         print('\t' * (indent+1) + str(value))
-   
 
 #get the API key from the preferences.json file      
 def GoogleAPI_Key():
@@ -75,8 +68,6 @@ def delay(prob_time):
 #Send the request for googleapiclient.discovery.build
 def GoogleClientRequest(apiKey):
     #addLog('(type=Request: googleapiclient.discovery.build) - Checking for the avaibility of the API KEY')
-
-    
     try:
         youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey = apiKey)
     except Exception:
@@ -85,7 +76,6 @@ def GoogleClientRequest(apiKey):
     
     #addLog('(type=Request: googleapiclient.discovery.build) - Got Google API Key [Verified]')
     delay(2.5)
-    
     #addLog('(type=Youtube API) - Youtube Data API version 3')
     return youtube
 
@@ -157,7 +147,13 @@ def updating_preferences(updating_option, data_option="", json_option=""):
         PrefFile["Preferences"]["Quotas"]["Reset time"] = str(data_option)
         with open(Preferences_Path, 'w') as Preferences_File:
             json.dump(PrefFile, Preferences_File, indent=4, sort_keys=True) 
-            
+    
+    elif(updating_option == "System"):
+        #addLog("(type=Function: updating_preferences, System) - Updated")
+        PrefFile["Preferences"]["System"] = data_option
+        with open(Preferences_Path, 'w') as Preferences_File:
+            json.dump(PrefFile, Preferences_File, indent=4, sort_keys=True) 
+    
 
 #get the upload intervale and calculating it
 def upload_intervale(Basic_Time_Now, channel):
@@ -281,6 +277,24 @@ def Add_Uploaded_Contenent(videos_dict):
     with open(UploadedVideos_Path, "w") as write_file:
         json.dump(videos_dict, write_file, indent=4, sort_keys=True)
     #addLog("(type=Update) - Updated UploadedVideos.json")
+
+def systemRun():
+    system = ""
+    while(system not in ["1", "2"]):
+        print("______________________________\nWhich system are you running?\n\n1) Windows\n2) Ubuntu / Linux\n\nAnswer: ", end="")
+        system = str(input())
+        print("______________________________")
+        
+    if(system == "1"):
+        system = "WIN"
+    else:
+        system = "LIN"
+        
+    PreFile = ReadJSON(Preferences_Path)
+    PreFile["Preferences"]["System"] = system
+    updating_preferences("System", system)
+    
+    
 
 #main filee"
 #add logs just for setup
