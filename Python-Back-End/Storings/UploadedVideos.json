@@ -2,7 +2,20 @@
     "Channel UC-ciXrv4h_IE3ga1dMfTUdA": [],
     "Channel UC0fiLCwTmAukotCXYnqfj0A": [],
     "Channel UC4X7J9D6VbTIwnFDFNkfQ1A": [],
-    "Channel UC6TGtNUDnhwZAw-MNZiYoAw": [],
+    "Channel UC6TGtNUDnhwZAw-MNZiYoAw": [
+        {
+            "channelTitle": "Vibes Forever",
+            "discordMessage": "True",
+            "duration": "PT2M1S",
+            "images": {
+                "channelLogo": "Null",
+                "videoThumbnail": "https://i.ytimg.com/vi/Gl-UEz1OZDc/sddefault.jpg"
+            },
+            "publishedAt": "2020-12-03T19:00:03+00:00",
+            "title": "BOYBOTHERED - FREAK FT. XANAKIN SKYWOK",
+            "videoId": "Gl-UEz1OZDc"
+        }
+    ],
     "Channel UC7tdoGx0eQfRJm9Qj6GCs0A": [],
     "Channel UC9qIyFas1B3X90Su4TfJoFQ": [],
     "Channel UC9uLMAmdGQaeLPHAOqkYlrw": [],

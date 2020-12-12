@@ -60,22 +60,29 @@ def GoogleAPI_Key():
 #convert time to a more readable form for addLogs
 def Convert_Time(time_complexe):
     return str(time_complexe)[:str(time_complexe).find('.')]
-
-#Write all Logs in the log file
-def addLog(action):
-    with open(Logs_Path, 'a') as fileLog:
-        fileLog.write(str(Logs_Time()) + ' > ' + action + '\n')
-    with open(Logs_Path, 'r') as fileLog:
-        fileLogs = fileLog.readlines()
-        
-    with open(Logs_Path, 'w') as fullFile:
-        fullFile.write('')
-        for line in fileLogs:
-            fullFile.write(line)
+            
+#logs
+def Log(string_log):
+    if(string_log == "Setup"):
+        Message = ['=====================================================\n', '[LazyTube] log file\n', 'Â© Malek Gara-Hellal\n', '=====================================================\n']
+        with open(Logs_Path, 'w') as fileLog:
+                fileLog.write("")
+        for line in Message:
+            with open(Logs_Path, 'a') as fileLog:
+                fileLog.write(line)
+                
+    elif(string_log == "Done"):
+        pass
+    
+    else:
+        with open(Logs_Path, 'a') as fileLog:
+            fileLog.write(Logs_Time() + " " + string_log + "\n")
 
 #Time format for the AddLog function  
 def Logs_Time():
-    return '[ (' +  str(date.today()).replace('-', '/') + ')' + ' | ' + datetime.now().strftime("%A, %H:%M:%S")+']'
+    dates = str(date.today())
+    times = datetime.strftime(datetime.now(), "%I:%M:%S %p")
+    return '[' +  dates + ' | ' + times + ']'
 
 #Delay
 def delay(prob_time):
@@ -84,16 +91,16 @@ def delay(prob_time):
 
 #Send the request for googleapiclient.discovery.build
 def GoogleClientRequest(apiKey):
-    #addLog('(type=Request: googleapiclient.discovery.build) - Checking for the avaibility of the API KEY')
+    Log("(type=Request: googleapiclient.discovery.build) - Checking for the avaibility of the API KEY")
     try:
         youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey = apiKey)
     except Exception:
-        #addLog("(type=Request: googleapiclient.discovery.build) - Google API Key isn't valid")   
+        Log("(type=Request: googleapiclient.discovery.build, Youtube v3) - API Key ERROR")
         sys.exit("API KEY isn't valid for use.\nTry again!")
     
-    #addLog('(type=Request: googleapiclient.discovery.build) - Got Google API Key [Verified]')
+    Log("(type=Request: googleapiclient.discovery.build, Youtube v3) - Valid API Key")
     delay(2.5)
-    #addLog('(type=Youtube API) - Youtube Data API version 3')
+    Log('(type=Youtube API) - Youtube Data API version 3')
     return youtube
 
 #get delay intervales
@@ -136,37 +143,31 @@ def updating_preferences(updating_option, data_option="", json_option=""):
     PrefFile = ReadJSON(Preferences_Path)
     
     if(updating_option == "Time = Start"):
-        #addLog("(type=Function: updating_preferences, Time = Start) - Updated")
         PrefFile["Preferences"]["Latest loop run time"] = str(data_option)
         with open(Preferences_Path, 'w') as Preferences_File:
             json.dump(PrefFile, Preferences_File, indent=4, sort_keys=True)
 
     elif(updating_option == "Number of loops"):
-        #addLog("(type=Function: updating_preferences, Number of loops) - Updated")
         PrefFile["Preferences"]["Number of loops"] = int(int(PrefFile["Preferences"]["Number of loops"]) + 1)
         with open(Preferences_Path, 'w') as Preferences_File:
             json.dump(PrefFile, Preferences_File, indent=4, sort_keys=True)
             
     elif(updating_option == "Latest check"):
-        #addLog("(type=Function: updating_preferences, Latest check) - Updated")
         PrefFile["Channels"][json_option]["Latest check"] = str(data_option)
         with open(Preferences_Path, 'w') as Preferences_File:
             json.dump(PrefFile, Preferences_File, indent=4, sort_keys=True)
             
     elif(updating_option == "Quotas, Requests rate"):
-        #addLog("(type=Function: updating_preferences, Quotas, Requests rate) - Updated")
         PrefFile["Preferences"]["Quotas"]["Requests rate"] = data_option
         with open(Preferences_Path, 'w') as Preferences_File:
             json.dump(PrefFile, Preferences_File, indent=4, sort_keys=True)
             
     elif(updating_option == "Quotas, Reset time"):
-        #addLog("(type=Function: updating_preferences, Quotas, Reset time) - Updated")
         PrefFile["Preferences"]["Quotas"]["Reset time"] = str(data_option)
         with open(Preferences_Path, 'w') as Preferences_File:
             json.dump(PrefFile, Preferences_File, indent=4, sort_keys=True) 
     
     elif(updating_option == "System"):
-        #addLog("(type=Function: updating_preferences, System) - Updated")
         PrefFile["Preferences"]["System"] = data_option
         with open(Preferences_Path, 'w') as Preferences_File:
             json.dump(PrefFile, Preferences_File, indent=4, sort_keys=True) 
@@ -183,14 +184,12 @@ def upload_intervale(Basic_Time_Now, channel):
         AfterPublish = str(PrefFile[channel]["Latest check"]).replace(" ", "T")
         BeforePublish = str(datetime.strptime(PrefFile[channel]["Latest check"], "%Y-%m-%dT%H:%M:%S.%f%z") + timedelta(seconds = int(Preferences_Informations("Intervale of upload")))).replace(" ", "T")
         
-    #addLog("(type=Function: upload_intervale) - BeforePublish: " + BeforePublish + ", AfterPublish: " + AfterPublish)
     return AfterPublish, BeforePublish
 
 #getting contentDetails, snippet about a channel
 def ChannelResponse_Activities(Channel, Youtube, AfterPublish, BeforePublish):
     Channel  = ReadJSON(Preferences_Path)["Channels"][Channel]
     ChannelID = Channel["Channel half-link"][Channel["Channel half-link"].find("/")+1:]
-    #addLog("(type=Request: Youtube.activities) - Request of ChannelID: " + ChannelID)
     request = Youtube.activities().list(part="snippet,contentDetails",
                                         channelId=ChannelID,
                                         maxResults=1000,
@@ -198,17 +197,14 @@ def ChannelResponse_Activities(Channel, Youtube, AfterPublish, BeforePublish):
                                         publishedBefore=BeforePublish)
     response = request.execute()
     
-    #addLog("(type=Request: Youtube.activities) - Request of " + ChannelID + " Accepted")
     return response
 
 #to get the thumbnail of the video for the discord bot
 def ChannelResponse_Video(videoId, Youtube):
-    #addLog("(type=Request: Youtube.activities) - Request of VideoID: " + videoId)
     request = Youtube.videos().list(
                             part="contentDetails,snippet",
                             id=videoId)
     response = request.execute()
-    #addLog("(type=Request: Youtube.activities) - Request of VideoID: " + videoId + " Accepted")
     for item in response["items"]: 
         try:
             videoThumbnail = dict(dict(dict(dict(item).get("snippet")).get("thumbnails")).get("standard")).get("url")
@@ -224,10 +220,8 @@ def ChannelAvailibility(Channel, Basic_Time_Now):
     LatestCheck = datetime.strptime(Channel["Latest check"], "%Y-%m-%dT%H:%M:%S.%f%z")
     ChannelID = Channel["Channel half-link"][Channel["Channel half-link"].find("/")+1:]
     if(LatestCheck <= Basic_Time_Now):
-        #addLog("(type=Function: ChannelAvailibility) - " + ChannelID + " Accepted")
         return True
     else:
-        #addLog("(type=Function: ChannelAvailibility) - " + Channel + " Declined")
         return False
 
 #get channelId of response
@@ -243,11 +237,14 @@ def QuotaCalculator(number):
     ResetTime = datetime.strptime(PreFile["Preferences"]["Quotas"]["Reset time"], '%Y-%m-%d %H:%M:%S.%f')
     if(ResetTime >= (time_now - timedelta(hours=24))):
         if(PreFile["Preferences"]["Quotas"]["Requests rate"] >= 49700):
-            #addLog("Requests rate has been exceeded (Paused for 24 hours)")
+            Log("Requests rate has been exceeded (Paused for 24 hours)")
             time.sleep(60*60*24)
+            Log("Requests rate has been reset!")
             updating_preferences("Quotas, Requests rate", 0)
+            
     if(ResetTime < (time_now - timedelta(hours=24))): 
         updating_preferences("Quotas, Requests rate", 0)
+        Log("Requests rate has been reset!")
         updating_preferences("Quotas, Reset time", time_now)
     
 
@@ -285,34 +282,26 @@ def VideosAppender(response, Youtube, video_dict={}, channelId="" ):
                             "channelLogo": "Null" #its None
                         }
                         })
-            #addLog("(type=Function: VideosAppender) - Added " + videoId)
     return video_dict
 
 #add the video_dict to .json file "UploadedVideos"
 def Add_Uploaded_Contenent(videos_dict):
-    #addLog("(type=Update) - Updating UploadedVideos.json")
     Uploadfile = ReadJSON(UploadedVideos_Path)
     Uploadfile.update(videos_dict)
         
     with open(UploadedVideos_Path, "w") as write_file:
         json.dump(Uploadfile, write_file, indent=4, sort_keys=True)
-    #addLog("(type=Update) - Updated UploadedVideos.json")
-
-
-    
 
 #main filee"
 #add logs just for setup
 
 def MainFile():
     Google_API_Key = GoogleAPI_Key() #Get API key from the data base
+    Log("Setup")
     Youtube = GoogleClientRequest(Google_API_Key) #Send a request to use the API key in YOUTUBE DATA V3
-    
     Basic_Time = Base_Information("Time = Start") #get time to check from
-    #addLog("(loop=" + str(Preferences_Informations("Number of loops")) + ") Youtube checking time: "+ str(Convert_Time(Basic_Time))) #logs
     updating_preferences("Time = Start", Basic_Time) #update the data base 
     updating_preferences("Number of loops") #update the data base 
-    
     
     while(True):
         PreFile = ReadJSON(Preferences_Path) #get database
@@ -321,6 +310,11 @@ def MainFile():
             
             AfterPublish = upload_intervale(Basic_Time, channel)[0]
             BeforePublish = upload_intervale(Basic_Time, channel)[1]
+            if(channel == "Channel UC0fiLCwTmAukotCXYnqfj0A"):
+                print("=======================")
+                print("AfterPublish: ",  AfterPublish, "BeforePublish: ", BeforePublish)
+                print(channel)
+                print("=======================")
             # AfterPublish = "2020-10-26T22:37:21.220816+01:00"
             
             if(ChannelAvailibility(channel, Basic_Time)): #check if the channel is ready to be checked

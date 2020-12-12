@@ -1,11 +1,8 @@
-import os
+from main_functions import Log
 
 
-relativePath = "Storings\\logs.txt"
-systeme = "LIN"
+#Time format for the AddLog function  
+Log("Setup")
 
-
-
-print(str(os.getcwd()))
 # "Storings\\logs.txt"
 

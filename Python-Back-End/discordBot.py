@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands, tasks
 from itertools import cycle
 
-from main_functions import Logs_Time, addLog, Path, delay, ReadJSON
+from main_functions import Logs_Time, Log, Path, delay, ReadJSON
 
 
 
@@ -127,10 +127,10 @@ def DiscordBot():
     #turn on the bot
     @client.event
     async def on_ready():
-        #addLog(g('(run=DiscordBot) Bot is getting ready for duty...')
+        Log('(run=DiscordBot) Bot is getting ready for duty...')
         await client.change_presence(activity=discord.Game(name='Do /help'))
         send_discord_message.start() #to start the task.loop function
-        #addLog(g('(run=DiscordBot) Bot is ready')
+        Log('(run=DiscordBot) Bot is ready')
         
         await client.get_channel(Preferences_Informations("Channel Id")).send('---------------\n\n\n**Rise and Shine LazyTube,  '+ '<@321378241040482304>' +'**\n\n\n---------------')
 
